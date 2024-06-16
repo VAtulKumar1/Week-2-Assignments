@@ -23,16 +23,17 @@ const port = 8080;
 const app = express();
 
 app.get('/files',getAllFileNames);
-app.get('/:fileName',readContentFromFile);
+app.get('/file/:fileName',readContentFromFile);
 
 
 function readContentFromFile(req,res){
   var fileName = req.params.fileName;
   fs.readFile(path.join(__dirname,"files",fileName),(err,data)=>{
     if(err){
-      res.status(404).send("Path not found");
+      res.status(404).send("File not found");
+    }else{
+      res.status(200).send(data);
     }
-    res.status(200).send(data);
   })
 }
 
@@ -40,19 +41,23 @@ function readContentFromFile(req,res){
 function getAllFileNames(req,res){
   fs.readdir(path.join(__dirname,"files"),(err,files)=>{
     if(err){
-      res.status(404).send("Path not found");
+      res.status(500).send("Path not found");
     }
     res.status(200).json(files);
   })
 }
 
-
+app.all("*",(req,res)=>{
+  res.status(404).send("Route not found");
+})
 
 
 
 app.listen(port,()=>{
   console.log(`Server is listening to port ${port} `);
 })
+
+
 
 
 module.exports = app;
