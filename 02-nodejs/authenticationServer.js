@@ -30,8 +30,89 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const port = 3000;
 const app = express();
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require('uuid');
+
+app.use(bodyParser.json());
+
+let users = [];
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.post('/signup',createUser);
+app.post('/login',login);
+app.get('/data',getUsers);
+
+
+
+function getUsers(req,res){
+  console.log(req.headers)
+  const {email,password} =req.headers;
+ 
+
+  const user = users.find(user => user.email === email && user.password === password);
+  if(user){
+    const usersWithoutPassword = users.map(({password,...rest})=>rest);
+    const response = {
+      users : usersWithoutPassword,
+    }
+    res.status(200).json(response);
+  }else{
+    res.status(401).send("Unauthorized");
+  }
+
+
+}
+
+
+function login(req,res){
+  const email = req.body.email;
+  const password = req.body.password;
+ 
+  const user = users.find(user => user.email === email && user.password === password);
+ 
+  if(user){
+    const response = {
+      email: email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    }
+    console.log(response)
+    res.status(200).json(response);
+
+  }else{
+    res.status(401).send("Unauthorized")
+  }
+}
+
+function createUser(req,res){
+  const user = {
+    email: req.body.email,
+    password: req.body.password,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    id: Math.floor(Math.random() * 1000000),
+  }
+  if(users.find(item => item.email === user.email)){
+      res.status(400).send("User Already Exists");
+  }
+  else{
+
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+
+
+}
+
+
+
+
+app.listen(3002);
+
+
+
+
 
 module.exports = app;
